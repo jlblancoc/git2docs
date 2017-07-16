@@ -3,9 +3,10 @@ Generating docs for each Git tag &amp; branch, made easy
 
 ## Features
 * Checks for updates in Git branches or new tags and generates their documentation. 
-* Git SHA values are cached for each branch so documentation is only (re)build if it is really necessary. 
+* Git SHA values are cached for each branch so documentation is only (re)built if necessary.
 * Compatible with Doxygen, Sphinx and any other documentation tool.
 * Generates a summary table for each branch with build time, success/error status, etc.
+* Written in pure Bash. No dependencies. Install it anywhere.
 
 Check out this [example output](http://mrpt.ual.es/reference/).
 
