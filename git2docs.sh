@@ -105,7 +105,7 @@ function processOneGitItem
 		# build docs:
 		echo "Fails" > $DOCGEN_LOG_FILE.state
 		set +e
-		eval /usr/bin/time -f "%E" -o $DOCGEN_LOG_FILE.time $DOCGEN_CMD >> $DOCGEN_LOG_FILE 2>&1
+		eval timeout $DOCGEN_TIMEOUT /usr/bin/time -f "%E" -o $DOCGEN_LOG_FILE.time $DOCGEN_CMD >> $DOCGEN_LOG_FILE 2>&1
 		DOC_RETCODE=$?
 		echo "DOCGEN return code: $DOC_RETCODE"
 		set -e

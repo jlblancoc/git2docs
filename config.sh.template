@@ -17,3 +17,5 @@ DOCGEN_CMD="doxygen"
 
 DOCGEN_OUT_DOC_DIR=$GIT_CLONEDIR/html/
 
+# Timeout for the document processing command (in seconds)
+DOCGEN_TIMEOUT=36000
