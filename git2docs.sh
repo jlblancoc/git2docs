@@ -24,7 +24,6 @@ set -e
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # https://stackoverflow.com/a/246128/1631514
 source $MYDIR/config.sh
 
-
 # Use:: $1=Git URI
 function getRemoteGitBranches
 {
@@ -143,8 +142,23 @@ function generateIndex
 	border: 1px solid black;
     }
   </style>
+EOM
+	if [ -f "$MYDIR/$HTML_EXTRA_HEAD" ]; then
+		echo "Including in HTML <head>: $MYDIR/$HTML_PAGE_HEADER" 
+		cat $MYDIR/$HTML_EXTRA_HEAD >> $HTMLOUT
+	fi
+
+	cat >> $HTMLOUT <<-EOM
  </head>
  <body>
+EOM
+
+        if [ -f "$MYDIR/$HTML_PAGE_HEADER" ]; then
+		echo "Including in HTML body (header): $MYDIR/$HTML_PAGE_HEADER"
+                cat $MYDIR/$HTML_PAGE_HEADER >> $HTMLOUT
+        fi
+
+	cat >> $HTMLOUT <<-EOM
  <div style='text-align: center;'>
  <table cellpadding=5 cellspacing=0 align='center'>
   <tr>
@@ -174,7 +188,13 @@ EOM
 cat >> $HTMLOUT <<- EOM
  </table>
  </div>
+EOM
 
+	if [ -f "$MYDIR/$HTML_PAGE_FOOTER" ]; then
+                cat $MYDIR/$HTML_PAGE_FOOTER >> $HTMLOUT
+	fi
+
+	cat >> $HTMLOUT <<-EOM
 <p>&nbsp;</p>
 <hr>
 <small>Generated on $(date +%c) by <a href="https://github.com/jlblancoc/git2docs">Git2Docs</a></small>
