@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 # **IMPORTANT**: Edit this file with the parameters of your setup, 
-# and RENAME it to `setup.sh`
+# and RENAME it to `config.sh`
 
 # Configuration file for git2docs
 
