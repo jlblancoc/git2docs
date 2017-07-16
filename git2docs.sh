@@ -118,6 +118,12 @@ function processOneGitItem
 			chmod 755 $OUT_WWWDIR/ -R  >/dev/null  # required for doxygen search 
 		fi
 
+		# Remove real path names from logs (for security reasons):
+		# $GIT_CLONEDIR==> &laquo;SRC&raquo;
+		# $OUT_WWWROOT ==> &laquo;OUT&raquo;
+		sed -i -e "s=$GIT_CLONEDIR=«SRC»=g" $DOCGEN_LOG_FILE
+                sed -i -e "s=$OUT_WWWROOT=«OUT»=g" $DOCGEN_LOG_FILE
+
 		# Clean up
 		git clean -fd  >/dev/null
 	
