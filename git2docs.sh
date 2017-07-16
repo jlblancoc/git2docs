@@ -148,6 +148,16 @@ function generateIndex
 	border: 1px solid black;
     }
   </style>
+  <script type="text/javascript" src="js/jquery-latest.min.js"></script>
+  <script type="text/javascript" src="js/jquery.tablesorter.js"></script>
+  <script>
+   \$(document).ready(function()
+	{
+		console.log( "document loaded" );
+		\$("#git2logs_table").tablesorter();
+	}
+	);
+  </script>
 EOM
 	if [ -f "$MYDIR/$HTML_EXTRA_HEAD" ]; then
 		echo "Including in HTML <head>: $MYDIR/$HTML_PAGE_HEADER" 
@@ -166,7 +176,8 @@ EOM
 
 	cat >> $HTMLOUT <<-EOM
  <div style='text-align: center;'>
- <table cellpadding=5 cellspacing=0 align='center'>
+ <table id="git2logs_table" class="tablesorter" cellpadding=5 cellspacing=0 align='center'>
+ <thead>
   <tr>
    <td><b>Branch/tag name</b></td>
    <td><b>Last build</b></td>
@@ -174,24 +185,30 @@ EOM
    <td><b>Build stats</b></td>
    <td><b>Git commit</b></td>
   </tr>
+ </thead>
+ <tbody>
 EOM
 	cd $OUT_WWWROOT
 	for dir in $(ls */ -d1c | cut -f 1 -d "/")
-	do 
-		echo "<tr>" >> $HTMLOUT
+	do
 		if [ -L "$dir" ]; then 
+	                echo "<tr>" >> $HTMLOUT
 	                echo "   <td colspan="5"><a href=\"$dir\">$dir</a> (&rightarrow; $(basename $(readlink -f $dir)))</td>" >> $HTMLOUT
 		else
-	                echo "   <td><a href=\"$dir\">$dir</a></td>" >> $HTMLOUT
-	                echo "   <td>$(date +%c -d @$(stat -c %Y $dir.log))</td>" >> $HTMLOUT
-	                echo "   <td>$(cat $dir.log.state) (See <a href=\"$dir.log\" target='_blank'>log</a>, $(stat -c %s $dir.log | numfmt --to=iec-i --suffix B --format="%4f" ))</td>" >> $HTMLOUT
-			echo "   <td>Duration: $(cat $dir.log.time). Size: $(du -sh $dir | cut -f 1)</td>" >> $HTMLOUT
-                        echo "   <td><a href="$GIT_URI_COMMITS/commit/$(cat $dir-last-git-update.sha)">$(cat $dir-last-git-update.sha | cut -c1-7)</a></td>" >> $HTMLOUT
-	                echo "  </tr>" >> $HTMLOUT
+			if [ -f "$dir.log" ]; then
+		                echo "<tr>" >> $HTMLOUT
+		                echo "   <td><a href=\"$dir\">$dir</a></td>" >> $HTMLOUT
+		                echo "   <td>$(date +%c -d @$(stat -c %Y $dir.log))</td>" >> $HTMLOUT
+		                echo "   <td>$(cat $dir.log.state) (See <a href=\"$dir.log\" target='_blank'>log</a>, $(stat -c %s $dir.log | numfmt --to=iec-i --suffix B --format="%4f" ))</td>" >> $HTMLOUT
+				echo "   <td>Duration: $(cat $dir.log.time). Size: $(du -sh $dir | cut -f 1)</td>" >> $HTMLOUT
+        	                echo "   <td><a href="$GIT_URI_COMMITS/commit/$(cat $dir-last-git-update.sha)">$(cat $dir-last-git-update.sha | cut -c1-7)</a></td>" >> $HTMLOUT
+	        	        echo "  </tr>" >> $HTMLOUT
+			fi
 		fi
 	done
 
 cat >> $HTMLOUT <<- EOM
+ </tbody>
  </table>
  </div>
 EOM
@@ -211,7 +228,7 @@ EOM
 }
 
 
-mainGit2Docs
+#mainGit2Docs
 generateIndex
 
 exit;
