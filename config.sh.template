@@ -1,0 +1,19 @@
+#!/bin/bash 
+
+# **IMPORTANT**: Edit this file with the parameters of your setup, 
+# and RENAME it to `setup.sh`
+
+# Configuration file for git2docs
+
+BASEDIR=$HOME
+
+GIT_URI=https://github.com/YOUR_USER/YOUR_REPO.git
+
+GIT_CLONEDIR=$BASEDIR/REPO_NAME
+
+OUT_WWWROOT=$BASEDIR/REPO_DOC_BASE
+
+DOCGEN_CMD="doxygen"
+
+DOCGEN_OUT_DOC_DIR=$GIT_CLONEDIR/html/
+
