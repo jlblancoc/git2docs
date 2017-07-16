@@ -185,7 +185,7 @@ EOM
 }
 
 
-#mainGit2Docs
+mainGit2Docs
 generateIndex
 
 exit;
