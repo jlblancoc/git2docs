@@ -139,13 +139,20 @@ function generateIndex
 	GIT_URI_COMMITS=$(echo $GIT_URI | sed 's/\.git//g')
 
 	cat > $HTMLOUT <<- EOM
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!DOCTYPE html>
 <html>
  <head>
   <title>Index - Git2Doc</title>
   <style type="text/css">
-    table, tr, td { 
+    table, tr, td {
 	border: 1px solid black;
+    }
+    table th {
+        text-decoration : underline;
+        color: #666;
+    }
+    table th:hover {
+        color: black;
     }
   </style>
   <script type="text/javascript" src="js/jquery-latest.min.js"></script>
@@ -176,13 +183,12 @@ EOM
 
 	cat >> $HTMLOUT <<-EOM
  <div style='text-align: center;'>
- <table id="git2logs_table" class="tablesorter" cellpadding=5 cellspacing=0 align='center'>
+ <table id="git2logs_table" class="tablesorter tablesorter-blue" cellpadding=5 cellspacing=0 align='center'>
  <thead>
   <tr>
    <td><b>Branch/tag name</b></td>
    <td><b>Last build</b></td>
-   <td><b>State</b></td>
-   <td><b>Build stats</b></td>
+   <td><b>Dox build</b></td>
    <td><b>Git commit</b></td>
   </tr>
  </thead>
@@ -191,17 +197,20 @@ EOM
 	cd $OUT_WWWROOT
 	for dir in $(ls */ -d1c | cut -f 1 -d "/")
 	do
-		if [ -L "$dir" ]; then 
+		if [ -L "$dir" ]; then
 	                echo "<tr>" >> $HTMLOUT
 	                echo "   <td colspan="5"><a href=\"$dir\">$dir</a> (&rightarrow; $(basename $(readlink -f $dir)))</td>" >> $HTMLOUT
 		else
 			if [ -f "$dir.log" ]; then
+				GITSHA=$(cat $dir-last-git-update.sha)
+				GITDATE=$(cd $GIT_CLONEDIR && git log -1 --format=%ci $GITSHA)
 		                echo "<tr>" >> $HTMLOUT
 		                echo "   <td><a href=\"$dir\">$dir</a></td>" >> $HTMLOUT
 		                echo "   <td>$(date +%c -d @$(stat -c %Y $dir.log))</td>" >> $HTMLOUT
-		                echo "   <td>$(cat $dir.log.state) (See <a href=\"$dir.log\" target='_blank'>log</a>, $(stat -c %s $dir.log | numfmt --to=iec-i --suffix B --format="%4f" ))</td>" >> $HTMLOUT
-				echo "   <td>Duration: $(cat $dir.log.time). Size: $(du -sh $dir | cut -f 1)</td>" >> $HTMLOUT
-        	                echo "   <td><a href="$GIT_URI_COMMITS/commit/$(cat $dir-last-git-update.sha)">$(cat $dir-last-git-update.sha | cut -c1-7)</a></td>" >> $HTMLOUT
+		                echo "   <td>$(cat $dir.log.state) (See <a href=\"$dir.log\" target='_blank'>log</a>, $(stat -c %s $dir.log | numfmt --to=iec-i --suffix B --format="%4f" ))<br/>" >> $HTMLOUT
+				echo "Build duration: $(cat $dir.log.time). Dir size: $(du -sh $dir | cut -f 1)</td>" >> $HTMLOUT
+        	                echo "   <td>$GITDATE" >> $HTMLOUT
+				echo " (<a href="$GIT_URI_COMMITS/commit/$(cat $dir-last-git-update.sha)">$(cat $dir-last-git-update.sha | cut -c1-7)</a>)</td>" >> $HTMLOUT
 	        	        echo "  </tr>" >> $HTMLOUT
 			fi
 		fi
