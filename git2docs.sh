@@ -24,21 +24,28 @@ set -e
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # https://stackoverflow.com/a/246128/1631514
 source $MYDIR/config.sh
 
+function dbgEcho()
+{
+	if [ "$VERBOSE" == "1" ]; then
+		echo "$1"
+	fi
+}
+
 # Use:: $1=Git URI
 function getRemoteGitBranches
 {
 	GIT_LS_REM=$(git ls-remote $1 | grep -e "tags" -e "heads")
 	RET=$(echo "$GIT_LS_REM" | grep -v -e "{}" | awk -F '[/ \t]' '{print $1,$NF}')
-	
-	echo "$RET"
+
+	dbgEcho "$RET"
 }
 
 function mainGit2Docs
 {
 	LIST_GIT_ITEMS=$(getRemoteGitBranches $GIT_URI)
 
-	echo "All git items:"	
-	echo "$LIST_GIT_ITEMS"
+	dbgEcho "All git items:"
+	dbgEcho "$LIST_GIT_ITEMS"
 
 	declare -a git_lines
 	readarray -t git_lines <<< "$LIST_GIT_ITEMS"
@@ -46,20 +53,18 @@ function mainGit2Docs
 	# process each remote branch or tag
 	for git_item_line in "${git_lines[@]}";
 	do
-		echo "Processing: $git_item_line"
+		dbgEcho "Processing: $git_item_line"
 		num_line_items=$( wc -w <<< $git_item_line )
 		if [ ! "$num_line_items" == "2" ]; then
 			continue;
 		fi
 		git_items_array=($git_item_line)
-		
+
 		GIT_SHA=${git_items_array[0]}
 		GIT_ITEM_NAME=${git_items_array[1]}
 
-		echo " * Git item '${GIT_ITEM_NAME}' with sha=$GIT_SHA"
+		dbgEcho " * Git item '${GIT_ITEM_NAME}' with sha=$GIT_SHA"
 		processOneGitItem "$GIT_SHA" "$GIT_ITEM_NAME"
-
-
 	done
 }
 
@@ -81,11 +86,12 @@ function processOneGitItem
 	# Check if there are new commit(s)?
         CURSHA=$1
         LASTSHA=$(cat $SHA_CACHE_FILE)
-	
+
         # Any change?
         if [ "$CURSHA" != "$LASTSHA" ]; then
                 set -x
-  	
+		echo "Change detected in $GIT_BRANCH. Processing it."
+
 		# Clone if it does not exist:
 		if [ ! -d $GIT_CLONEDIR ]; then
 			mkdir -p $GIT_CLONEDIR
@@ -97,7 +103,7 @@ function processOneGitItem
 		# Update and get the req branch:
 		git clean -fd >/dev/null
 		git checkout .  >/dev/null
-	
+
 		git fetch
 		git checkout $GIT_BRANCH  > $DOCGEN_LOG_FILE 2>&1 2>&1
 
@@ -126,7 +132,7 @@ function processOneGitItem
 
 		# Clean up
 		git clean -fd  >/dev/null
-	
+
 		# Save new commit sha:
 		echo $CURSHA > $SHA_CACHE_FILE
 	fi
@@ -167,7 +173,7 @@ function generateIndex
   </script>
 EOM
 	if [ -f "$MYDIR/$HTML_EXTRA_HEAD" ]; then
-		echo "Including in HTML <head>: $MYDIR/$HTML_PAGE_HEADER" 
+		dbgEcho "Including in HTML <head>: $MYDIR/$HTML_PAGE_HEADER"
 		cat $MYDIR/$HTML_EXTRA_HEAD >> $HTMLOUT
 	fi
 
@@ -177,7 +183,7 @@ EOM
 EOM
 
         if [ -f "$MYDIR/$HTML_PAGE_HEADER" ]; then
-		echo "Including in HTML body (header): $MYDIR/$HTML_PAGE_HEADER"
+		dbgEcho "Including in HTML body (header): $MYDIR/$HTML_PAGE_HEADER"
                 cat $MYDIR/$HTML_PAGE_HEADER >> $HTMLOUT
         fi
 
@@ -187,8 +193,8 @@ EOM
  <thead>
   <tr>
    <td><b>Branch/tag name</b></td>
-   <td><b>Last build</b></td>
-   <td><b>Dox build</b></td>
+   <td><b>Last docs build</b></td>
+   <td><b>Docs build info</b></td>
    <td><b>Git commit</b></td>
   </tr>
  </thead>
@@ -206,7 +212,7 @@ EOM
 				GITDATE=$(cd $GIT_CLONEDIR && git log -1 --format=%ci $GITSHA)
 		                echo "<tr>" >> $HTMLOUT
 		                echo "   <td><a href=\"$dir\">$dir</a></td>" >> $HTMLOUT
-		                echo "   <td>$(date +%c -d @$(stat -c %Y $dir.log))</td>" >> $HTMLOUT
+		                echo "   <td>$(date +'%Y-%m-%d %T %z' -d @$(stat -c %Y $dir.log))</td>" >> $HTMLOUT
 		                echo "   <td>$(cat $dir.log.state) (See <a href=\"$dir.log\" target='_blank'>log</a>, $(stat -c %s $dir.log | numfmt --to=iec-i --suffix B --format="%4f" ))<br/>" >> $HTMLOUT
 				echo "Build duration: $(cat $dir.log.time). Dir size: $(du -sh $dir | cut -f 1)</td>" >> $HTMLOUT
         	                echo "   <td>$GITDATE" >> $HTMLOUT
