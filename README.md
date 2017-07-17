@@ -1,6 +1,9 @@
 # git2docs
 Generating docs for each Git tag &amp; branch, made easy
 
+![demo](https://jlblancoc.github.io/git2docs/git2docs_demo.gif)
+
+
 ## Features
 * Checks for updates in Git branches or new tags and generates their documentation. 
 * Git SHA values are cached for each branch so documentation is only (re)built if necessary.
