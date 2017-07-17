@@ -24,6 +24,19 @@ set -e
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # https://stackoverflow.com/a/246128/1631514
 source $MYDIR/config.sh
 
+
+# Lock file preparation:
+LOCKFILE=$OUT_WWWROOT/.git2docs.lock
+DO_REMOVE_LOCK=1
+# Make sure we cleanup lockfile on exit:
+function cleanup
+{
+	if [ "$DO_REMOVE_LOCK" == "1" ]; then 
+		rm $LOCKFILE
+	fi
+}
+trap cleanup EXIT
+
 function dbgEcho()
 {
 	if [ "$VERBOSE" == "1" ]; then
@@ -242,7 +255,24 @@ EOM
 EOM
 }
 
+# Check for another active session:
+if [ -f $LOCKFILE ]; then
+	# There is a lock file. Honor it and exit... unless it's really old, 
+	# which might indicate a dangling script (?).
+	if [ "$(( $(date +"%s") - $(stat -c "%Y" $LOCKFILE) ))" -gt "3600" ]; then
+		# too old: reset lock file
+		rm $LOCKFILE
+		dbgEcho "Removing dangling lockfile."
+	else
+		DO_REMOVE_LOCK=0
+		dbgEcho "Exiting: there is another instance running? (lockfile exists)"
+		exit;
+	fi
+fi
+# Create lock file:
+touch $LOCKFILE
 
+# Ok, run git2docs:
 mainGit2Docs
 generateIndex
 
