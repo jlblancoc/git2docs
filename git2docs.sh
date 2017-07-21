@@ -50,7 +50,7 @@ function getRemoteGitBranches
 	GIT_LS_REM=$(git ls-remote $1 | grep -e "tags" -e "heads")
 	RET=$(echo "$GIT_LS_REM" | grep -v -e "{}" | awk -F '[/ \t]' '{print $1,$NF}')
 
-	dbgEcho "$RET"
+	echo "$RET"
 }
 
 function mainGit2Docs
