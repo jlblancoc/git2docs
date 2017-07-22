@@ -180,7 +180,7 @@ function generateIndex
    \$(document).ready(function()
 	{
 		console.log( "document loaded" );
-		\$("#git2logs_table").tablesorter();
+		\$("#git2logs_table").tablesorter(  {sortList: [ [3,1] ]} );
 	}
 	);
   </script>
