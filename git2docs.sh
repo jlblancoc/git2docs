@@ -213,6 +213,7 @@ EOM
  </thead>
  <tbody>
 EOM
+	UNIXDATE_NOW=$(date +"%s")
 	cd $OUT_WWWROOT
 	for dir in $(ls */ -d1c | cut -f 1 -d "/")
 	do
@@ -223,13 +224,33 @@ EOM
 			if [ -f "$dir.log" ]; then
 				GITSHA=$(cat $dir-last-git-update.sha)
 				GITDATE=$(cd $GIT_CLONEDIR && git log -1 --format=%ci $GITSHA)
+				UNIXDATE_GIT=$(cd $GIT_CLONEDIR && git log -1 --format=%ct $GITSHA)
+				GIT_AGE=$(($UNIXDATE_NOW - $UNIXDATE_GIT))
+
+                                if ((GIT_AGE < $((7*24*60*60)) )); then
+					IS_RECENT=1
+				else
+					IS_RECENT=0
+				fi
+
 		                echo "<tr>" >> $HTMLOUT
 		                echo "   <td><a href=\"$dir\">$dir</a></td>" >> $HTMLOUT
 		                echo "   <td>$(date +'%Y-%m-%d %T %z' -d @$(stat -c %Y $dir.log))</td>" >> $HTMLOUT
 		                echo "   <td>$(cat $dir.log.state) (See <a href=\"$dir.log\" target='_blank'>log</a>, $(stat -c %s $dir.log | numfmt --to=iec-i --suffix B --format="%4f" ))<br/>" >> $HTMLOUT
 				echo "Build duration: $(cat $dir.log.time). Dir size: $(du -sh $dir | cut -f 1)</td>" >> $HTMLOUT
-        	                echo "   <td>$GITDATE" >> $HTMLOUT
-				echo " (<a href="$GIT_URI_COMMITS/commit/$(cat $dir-last-git-update.sha)">$(cat $dir-last-git-update.sha | cut -c1-7)</a>)</td>" >> $HTMLOUT
+
+				# git age:
+        	                echo "   <td>" >> $HTMLOUT
+
+				if [ $IS_RECENT == "1" ]; then
+					echo "<b>" >> $HTMLOUT
+				fi
+				echo "$GITDATE" >> $HTMLOUT
+				if [ $IS_RECENT == "1" ]; then
+                                        echo "</b>" >> $HTMLOUT
+                                fi
+   				echo " (<a href="$GIT_URI_COMMITS/commit/$(cat $dir-last-git-update.sha)">$(cat $dir-last-git-update.sha | cut -c1-7)</a>)</td>" >> $HTMLOUT
+
 	        	        echo "  </tr>" >> $HTMLOUT
 			fi
 		fi
