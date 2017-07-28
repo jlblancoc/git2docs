@@ -119,6 +119,7 @@ function processOneGitItem
 
 		git fetch
 		git checkout $GIT_BRANCH  > $DOCGEN_LOG_FILE 2>&1 2>&1
+		git pull
 
 		# build docs:
 		echo "Fails" > $DOCGEN_LOG_FILE.state
