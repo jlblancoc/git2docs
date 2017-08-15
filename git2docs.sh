@@ -117,9 +117,10 @@ function processOneGitItem
 		git clean -fd >/dev/null
 		git checkout .  >/dev/null
 
-		git fetch
+		git fetch --all
 		git checkout $GIT_BRANCH  > $DOCGEN_LOG_FILE 2>&1 2>&1
-		git pull
+		# only if we are in a branch (as opposed to a tag), do a pull:
+		git describe --exact-match --tags HEAD  || git pull
 
 		# build docs:
 		echo "Fails" > $DOCGEN_LOG_FILE.state
