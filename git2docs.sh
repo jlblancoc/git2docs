@@ -71,6 +71,7 @@ function mainGit2Docs
 	readarray -t git_lines <<< "$LIST_GIT_ITEMS"
 
 	# process each remote branch or tag
+	LIST_GIT_RELEASES=()
 	LIST_GIT_ITEMS=()
 	for git_item_line in "${git_lines[@]}";
 	do
@@ -83,18 +84,37 @@ function mainGit2Docs
 
 		GIT_SHA=${git_items_array[0]}
 		GIT_ITEM_NAME=${git_items_array[1]}
-		LIST_GIT_ITEMS[${#LIST_GIT_ITEMS[*]}]=$GIT_ITEM_NAME
+
+		# add list of numeric versions:
+		if [[ $GIT_ITEM_NAME =~ ^v*[0-9]+.* ]]; then
+			LIST_GIT_RELEASES+=($GIT_ITEM_NAME)
+		fi
+		LIST_GIT_ITEMS+=($GIT_ITEM_NAME)
 
 		dbgEcho "  * Git item: '${GIT_ITEM_NAME}'"
 		dbgEcho "  * Git SHA : $GIT_SHA"
 		processOneGitItem "$GIT_SHA" "$GIT_ITEM_NAME"
 	done
 
-	dbgEcho "LIST_GIT_ITEMS: $LIST_GIT_ITEMS"
+	# If we have 1 or more "v1.2.3" or "1.2.3" tags (releases), sort them
+	# and assume the latest one is "stable":
+	if [ ! ${#LIST_GIT_RELEASES[@]} -eq 0 ];
+	then
+		echo ${LIST_GIT_RELEASES[@]}
+		IFS=$'\n' SORTED_LIST_GIT_ITEMS=($(sort -V <<<"${LIST_GIT_RELEASES[*]}"))
+		unset IFS
+
+		LAST_GIT_RELEASE=${SORTED_LIST_GIT_ITEMS[-1]}
+		dbgEcho "* Creating 'stable' symlink for latest release: '$LAST_GIT_RELEASE'"
+
+		rm $OUT_WWWROOT/stable 2>/dev/null || true
+		ln -s $OUT_WWWROOT/$LAST_GIT_RELEASE $OUT_WWWROOT/stable
+	fi
+
+	# TO-DO: Remove non-existing branches
 
 }
 
-# TODO: Remove non-existing branches
 
 # Usage: $1=git_sha  $2=git_name
 function processOneGitItem
