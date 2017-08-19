@@ -18,12 +18,18 @@
 #  See docs online https://github.com/jlblancoc/git2docs
 # ============================================================================
 
-set -e
+# Set to 1 to enable command echo
+DEBUG_ENABLE_ECHO=0
+
+set -e  # Exit on any error
 
 # User set-up:
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # https://stackoverflow.com/a/246128/1631514
 source $MYDIR/config.sh
 
+if [ ! -f $OUT_WWWROOT ]; then
+	mkdir -p $OUT_WWWROOT
+fi
 
 # Lock file preparation:
 LOCKFILE=$OUT_WWWROOT/.git2docs.lock
@@ -31,7 +37,7 @@ DO_REMOVE_LOCK=1
 # Make sure we cleanup lockfile on exit:
 function cleanup
 {
-	if [ "$DO_REMOVE_LOCK" == "1" ]; then 
+	if [ "$DO_REMOVE_LOCK" == "1" ]; then
 		rm $LOCKFILE
 	fi
 }
@@ -45,6 +51,7 @@ function dbgEcho()
 }
 
 # Use:: $1=Git URI
+# Return the list of all remote branches AND tags
 function getRemoteGitBranches
 {
 	GIT_LS_REM=$(git ls-remote $1 | grep -e "tags" -e "heads")
@@ -93,17 +100,19 @@ function processOneGitItem
 	DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH.log
 
 	if [ ! -f $SHA_CACHE_FILE ]; then
-                echo " " > $SHA_CACHE_FILE
-        fi
+		echo " " > $SHA_CACHE_FILE
+	fi
 
 	# Check if there are new commit(s)?
-        CURSHA=$1
-        LASTSHA=$(cat $SHA_CACHE_FILE)
+	CURSHA=$1
+	LASTSHA=$(cat $SHA_CACHE_FILE)
 
-        # Any change?
-        if [ "$CURSHA" != "$LASTSHA" ]; then
-                set -x
-		echo "Change detected in $GIT_BRANCH. Processing it."
+	# Any change?
+	if [ "$CURSHA" != "$LASTSHA" ]; then
+		if [ ! $DEBUG_ENABLE_ECHO -eq 0 ];then
+			set -x
+		fi
+		echo "Change detected in '$GIT_BRANCH'. Processing it."
 
 		# Clone if it does not exist:
 		if [ ! -d $GIT_CLONEDIR ]; then
@@ -120,7 +129,14 @@ function processOneGitItem
 		git fetch --all
 		git checkout $GIT_BRANCH  > $DOCGEN_LOG_FILE 2>&1 2>&1
 		# only if we are in a branch (as opposed to a tag), do a pull:
-		git describe --exact-match --tags HEAD  || git pull
+		IS_BRANCH=0
+		git describe --exact-match --tags HEAD || IS_BRANCH=1
+
+		if [ "$IS_BRANCH" -eq "1" ]; then
+			dbgEcho "Git item: '$GIT_BRANCH' is a Branch."
+		else
+			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
+		fi
 
 		# build docs:
 		echo "Fails" > $DOCGEN_LOG_FILE.state
@@ -135,8 +151,8 @@ function processOneGitItem
 			# Copy to target WWW dir:
 			mkdir -p $OUT_WWWDIR  >/dev/null 2>&1
 			rsync -a $DOCGEN_OUT_DOC_DIR  $OUT_WWWDIR/  >/dev/null
-			mv $GIT_CLONEDIR/doc/dox_mrpt.tag $OUT_WWWDIR/  || true
-			chmod 755 $OUT_WWWDIR/ -R  >/dev/null  # required for doxygen search 
+			mv $GIT_CLONEDIR/doc/*.tag $OUT_WWWDIR/  || true
+			chmod 755 $OUT_WWWDIR/ -R  >/dev/null  # required for doxygen search
 		fi
 
 		# Remove real path names from logs (for security reasons):
@@ -280,7 +296,7 @@ EOM
 
 # Check for another active session:
 if [ -f $LOCKFILE ]; then
-	# There is a lock file. Honor it and exit... unless it's really old, 
+	# There is a lock file. Honor it and exit... unless it's really old,
 	# which might indicate a dangling script (?).
 	if [ "$(( $(date +"%s") - $(stat -c "%Y" $LOCKFILE) ))" -gt "3600" ]; then
 		# too old: reset lock file
@@ -300,6 +316,3 @@ mainGit2Docs
 generateIndex
 
 exit;
-
-
-
