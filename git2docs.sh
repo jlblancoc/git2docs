@@ -71,9 +71,10 @@ function mainGit2Docs
 	readarray -t git_lines <<< "$LIST_GIT_ITEMS"
 
 	# process each remote branch or tag
+	LIST_GIT_ITEMS=()
 	for git_item_line in "${git_lines[@]}";
 	do
-		dbgEcho "Processing: $git_item_line"
+		dbgEcho " * Processing..." # $git_item_line"
 		num_line_items=$( wc -w <<< $git_item_line )
 		if [ ! "$num_line_items" == "2" ]; then
 			continue;
@@ -82,10 +83,15 @@ function mainGit2Docs
 
 		GIT_SHA=${git_items_array[0]}
 		GIT_ITEM_NAME=${git_items_array[1]}
+		LIST_GIT_ITEMS[${#LIST_GIT_ITEMS[*]}]=$GIT_ITEM_NAME
 
-		dbgEcho " * Git item '${GIT_ITEM_NAME}' with sha=$GIT_SHA"
+		dbgEcho "  * Git item: '${GIT_ITEM_NAME}'"
+		dbgEcho "  * Git SHA : $GIT_SHA"
 		processOneGitItem "$GIT_SHA" "$GIT_ITEM_NAME"
 	done
+
+	dbgEcho "LIST_GIT_ITEMS: $LIST_GIT_ITEMS"
+
 }
 
 # TODO: Remove non-existing branches
@@ -112,7 +118,7 @@ function processOneGitItem
 		if [ ! $DEBUG_ENABLE_ECHO -eq 0 ];then
 			set -x
 		fi
-		echo "Change detected in '$GIT_BRANCH'. Processing it."
+		echo "  => Change detected in '$GIT_BRANCH'. Processing it."
 
 		# Clone if it does not exist:
 		if [ ! -d $GIT_CLONEDIR ]; then
@@ -151,7 +157,12 @@ function processOneGitItem
 			# Copy to target WWW dir:
 			mkdir -p $OUT_WWWDIR  >/dev/null 2>&1
 			rsync -a $DOCGEN_OUT_DOC_DIR  $OUT_WWWDIR/  >/dev/null
-			mv $GIT_CLONEDIR/doc/*.tag $OUT_WWWDIR/  || true
+
+			if stat --printf='' $GIT_CLONEDIR/doc/*.tag 2>/dev/null
+			then
+				mv $GIT_CLONEDIR/doc/*.tag $OUT_WWWDIR/
+			fi
+
 			chmod 755 $OUT_WWWDIR/ -R  >/dev/null  # required for doxygen search
 		fi
 
@@ -166,6 +177,8 @@ function processOneGitItem
 
 		# Save new commit sha:
 		echo $CURSHA > $SHA_CACHE_FILE
+	else
+		dbgEcho "  => No changes detected."
 	fi
 }
 
