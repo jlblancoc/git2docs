@@ -156,7 +156,7 @@ function processOneGitItem
 		git checkout $GIT_BRANCH  > $DOCGEN_LOG_FILE 2>&1 2>&1
 		# only if we are in a branch (as opposed to a tag), do a pull:
 		IS_BRANCH=0
-		git describe --exact-match --tags HEAD || IS_BRANCH=1
+		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
 
 		if [ "$IS_BRANCH" -eq "1" ]; then
 			dbgEcho "Git item: '$GIT_BRANCH' is a Branch."
