@@ -160,6 +160,7 @@ function processOneGitItem
 
 		if [ "$IS_BRANCH" -eq "1" ]; then
 			dbgEcho "Git item: '$GIT_BRANCH' is a Branch."
+			git pull
 		else
 			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
 		fi
