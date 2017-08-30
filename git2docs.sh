@@ -124,7 +124,6 @@ function mainGit2Docs
 
 		SHA_CACHE_FILE=$OUT_WWWROOT/$GIT_BRANCH-last-git-update.sha
 		DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH.log
-		echo "" > $DOCGEN_LOG_FILE # Reset log file
 
 		if [ ! -f $SHA_CACHE_FILE ]; then
 			echo " " > $SHA_CACHE_FILE
@@ -140,6 +139,7 @@ function mainGit2Docs
 				set -x
 			fi
 			echo "  => Change detected in '$GIT_BRANCH'. Processing it."
+	                echo "" > $DOCGEN_LOG_FILE # Reset log file
 
 			# Clone if it does not exist:
 			if [ ! -d $GIT_CLONEDIR ]; then
