@@ -68,99 +68,100 @@ function mainGit2Docs
 	dbgEcho "$LIST_GIT_ITEMS"
 
 	declare -a git_lines
-	readarray -t git_lines <<< "$LIST_GIT_ITEMS"
+		readarray -t git_lines <<< "$LIST_GIT_ITEMS"
 
-	# process each remote branch or tag
-	LIST_GIT_RELEASES=()
-	LIST_GIT_ITEMS=()
-	for git_item_line in "${git_lines[@]}";
-	do
-		dbgEcho " * Processing..." # $git_item_line"
-		num_line_items=$( wc -w <<< $git_item_line )
-		if [ ! "$num_line_items" == "2" ]; then
-			continue;
-		fi
-		git_items_array=($git_item_line)
+		# process each remote branch or tag
+		LIST_GIT_RELEASES=()
+		LIST_GIT_ITEMS=()
+		for git_item_line in "${git_lines[@]}";
+		do
+			dbgEcho " * Processing..." # $git_item_line"
+			num_line_items=$( wc -w <<< $git_item_line )
+			if [ ! "$num_line_items" == "2" ]; then
+				continue;
+			fi
+			git_items_array=($git_item_line)
 
-		GIT_SHA=${git_items_array[0]}
-		GIT_ITEM_NAME=${git_items_array[1]}
+			GIT_SHA=${git_items_array[0]}
+			GIT_ITEM_NAME=${git_items_array[1]}
 
-		# add list of numeric versions:
-		if [[ $GIT_ITEM_NAME =~ ^v*[0-9]+.* ]]; then
-			LIST_GIT_RELEASES+=($GIT_ITEM_NAME)
-		fi
-		LIST_GIT_ITEMS+=($GIT_ITEM_NAME)
+			# add list of numeric versions:
+			if [[ $GIT_ITEM_NAME =~ ^v*[0-9]+.* ]]; then
+				LIST_GIT_RELEASES+=($GIT_ITEM_NAME)
+			fi
+			LIST_GIT_ITEMS+=($GIT_ITEM_NAME)
 
-		dbgEcho "  * Git item: '${GIT_ITEM_NAME}'"
-		dbgEcho "  * Git SHA : $GIT_SHA"
-		processOneGitItem "$GIT_SHA" "$GIT_ITEM_NAME"
-	done
+			dbgEcho "  * Git item: '${GIT_ITEM_NAME}'"
+			dbgEcho "  * Git SHA : $GIT_SHA"
+			processOneGitItem "$GIT_SHA" "$GIT_ITEM_NAME"
+		done
 
-	# If we have 1 or more "v1.2.3" or "1.2.3" tags (releases), sort them
-	# and assume the latest one is "stable":
-	if [ ! ${#LIST_GIT_RELEASES[@]} -eq 0 ];
-	then
-		echo ${LIST_GIT_RELEASES[@]}
-		IFS=$'\n' SORTED_LIST_GIT_ITEMS=($(sort -V <<<"${LIST_GIT_RELEASES[*]}"))
-		unset IFS
+		# If we have 1 or more "v1.2.3" or "1.2.3" tags (releases), sort them
+		# and assume the latest one is "stable":
+		if [ ! ${#LIST_GIT_RELEASES[@]} -eq 0 ];
+		then
+			echo ${LIST_GIT_RELEASES[@]}
+			IFS=$'\n' SORTED_LIST_GIT_ITEMS=($(sort -V <<<"${LIST_GIT_RELEASES[*]}"))
+			unset IFS
 
-		LAST_GIT_RELEASE=${SORTED_LIST_GIT_ITEMS[-1]}
-		dbgEcho "* Creating 'stable' symlink for latest release: '$LAST_GIT_RELEASE'"
+			LAST_GIT_RELEASE=${SORTED_LIST_GIT_ITEMS[-1]}
+			dbgEcho "* Creating 'stable' symlink for latest release: '$LAST_GIT_RELEASE'"
 
-		rm $OUT_WWWROOT/stable 2>/dev/null || true
-		ln -s $OUT_WWWROOT/$LAST_GIT_RELEASE $OUT_WWWROOT/stable
-	fi
-
-	# TO-DO: Remove non-existing branches
-
-}
-
-
-# Usage: $1=git_sha  $2=git_name
-function processOneGitItem
-{
-	GIT_BRANCH=$2
-	OUT_WWWDIR=$OUT_WWWROOT/$GIT_BRANCH
-
-	SHA_CACHE_FILE=$OUT_WWWROOT/$GIT_BRANCH-last-git-update.sha
-	DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH.log
-
-	if [ ! -f $SHA_CACHE_FILE ]; then
-		echo " " > $SHA_CACHE_FILE
-	fi
-
-	# Check if there are new commit(s)?
-	CURSHA=$1
-	LASTSHA=$(cat $SHA_CACHE_FILE)
-
-	# Any change?
-	if [ "$CURSHA" != "$LASTSHA" ]; then
-		if [ ! $DEBUG_ENABLE_ECHO -eq 0 ];then
-			set -x
-		fi
-		echo "  => Change detected in '$GIT_BRANCH'. Processing it."
-
-		# Clone if it does not exist:
-		if [ ! -d $GIT_CLONEDIR ]; then
-			mkdir -p $GIT_CLONEDIR
-			git clone $GIT_URI $GIT_CLONEDIR
+			rm $OUT_WWWROOT/stable 2>/dev/null || true
+			ln -s $OUT_WWWROOT/$LAST_GIT_RELEASE $OUT_WWWROOT/stable
 		fi
 
-		cd $GIT_CLONEDIR
+		# TO-DO: Remove non-existing branches
 
-		# Update and get the req branch:
-		git clean -fd >/dev/null
-		git checkout .  >/dev/null
+	}
 
-		git fetch --all
-		git checkout $GIT_BRANCH  > $DOCGEN_LOG_FILE 2>&1 2>&1
+
+	# Usage: $1=git_sha  $2=git_name
+	function processOneGitItem
+	{
+		GIT_BRANCH=$2
+		OUT_WWWDIR=$OUT_WWWROOT/$GIT_BRANCH
+
+		SHA_CACHE_FILE=$OUT_WWWROOT/$GIT_BRANCH-last-git-update.sha
+		DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH.log
+		echo "" > $DOCGEN_LOG_FILE # Reset log file
+
+		if [ ! -f $SHA_CACHE_FILE ]; then
+			echo " " > $SHA_CACHE_FILE
+		fi
+
+		# Check if there are new commit(s)?
+		CURSHA=$1
+		LASTSHA=$(cat $SHA_CACHE_FILE)
+
+		# Any change?
+		if [ "$CURSHA" != "$LASTSHA" ]; then
+			if [ ! $DEBUG_ENABLE_ECHO -eq 0 ];then
+				set -x
+			fi
+			echo "  => Change detected in '$GIT_BRANCH'. Processing it."
+
+			# Clone if it does not exist:
+			if [ ! -d $GIT_CLONEDIR ]; then
+				mkdir -p $GIT_CLONEDIR
+				git clone $GIT_URI $GIT_CLONEDIR
+			fi
+
+			cd $GIT_CLONEDIR
+
+			# Update and get the req branch:
+			git clean -fd >/dev/null
+			git checkout .  >/dev/null
+
+			git fetch --all
+			git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1
 		# only if we are in a branch (as opposed to a tag), do a pull:
 		IS_BRANCH=0
 		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
 
 		if [ "$IS_BRANCH" -eq "1" ]; then
-			dbgEcho "Git item: '$GIT_BRANCH' is a Branch."
-			git pull
+			dbgEcho "Git item: '$GIT_BRANCH' is a Branch." 
+			git pull  >> $DOCGEN_LOG_FILE 2>&1
 		else
 			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
 		fi
