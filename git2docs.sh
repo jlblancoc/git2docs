@@ -22,6 +22,7 @@
 DEBUG_ENABLE_ECHO=0
 
 set -e  # Exit on any error
+#set -x # for debugging only
 
 # User set-up:
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # https://stackoverflow.com/a/246128/1631514
@@ -100,7 +101,7 @@ function mainGit2Docs
 		# and assume the latest one is "stable":
 		if [ ! ${#LIST_GIT_RELEASES[@]} -eq 0 ];
 		then
-			echo ${LIST_GIT_RELEASES[@]}
+			dbgEcho ${LIST_GIT_RELEASES[@]}
 			IFS=$'\n' SORTED_LIST_GIT_ITEMS=($(sort -V <<<"${LIST_GIT_RELEASES[*]}"))
 			unset IFS
 
