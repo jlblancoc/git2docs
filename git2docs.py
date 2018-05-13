@@ -18,6 +18,7 @@
 #  See docs online https://github.com/jlblancoc/git2docs
 # ============================================================================
 
+import atexit
 import configparser
 import os.path
 import string
@@ -25,38 +26,44 @@ import sys
 import time
 import subprocess
 
-VERBOSE=True
+VERBOSE = True
 MYPATH = os.path.dirname(sys.argv[0])
 MYPATH_ABS = os.path.abspath(MYPATH)
-LOCKFILE=''
-DO_REMOVE_LOCK=False
+LOCKFILE = ''
+DO_REMOVE_LOCK = False
+
 
 def dbgPrint(str):
     if (VERBOSE):
         print('# ' + str)
 
+
 # Return the list of all remote branches AND tags
 def getRemoteGitBranches(git_uri):
-    OUT=subprocess.Popen(['sh', '-c', 'git ls-remote '+git_uri+' | grep -e "tags" -e "heads"'], stdout=subprocess.PIPE).communicate()
+    OUT = subprocess.Popen(['sh', '-c', 'git ls-remote '+git_uri+
+                            ' | grep -e "tags" -e "heads"'],
+                           stdout=subprocess.PIPE).communicate()
     GIT_LS_REM = OUT[0].decode()
-    dbgPrint('GIT_LS_REM: '+ GIT_LS_REM)
-    #return RET=$(echo "$GIT_LS_REM" | grep -v -e "{}" | awk -F '[/ \t]' '{print $1,$NF}')
+    dbgPrint('GIT_LS_REM: ' + GIT_LS_REM)
+    #return RET=$(echo "$GIT_LS_REM" |
+    # grep -v -e "{}" | awk -F '[/ \t]' '{print $1,$NF}')
 
+
+def read_cfg(cfg, dict, name):
+    s = os.path.expandvars(cfg['config'][name])
+    var = string.Template(s).substitute(dict)
+    dict[name] = var
+    return var
 
 def main():
     # Read config:
     cfg = configparser.ConfigParser()
     cfg.read('./git2docs.cfg')
-    BASEDIR = os.path.expandvars(cfg['config']['BASEDIR'])
-
-    var_replcs = {"BASEDIR": BASEDIR}
-    GIT_CLONEDIR= string.Template(os.path.expandvars(cfg['config']['GIT_CLONEDIR'])).substitute(var_replcs)
-
-    var_replcs['GIT_CLONEDIR'] = GIT_CLONEDIR
-    OUT_WWWROOT= string.Template(os.path.expandvars(cfg['config']['OUT_WWWROOT'])).substitute(var_replcs)
-
-    var_replcs['OUT_WWWROOT'] = OUT_WWWROOT
-    DOCGEN_OUT_DOC_DIR= string.Template(os.path.expandvars(cfg['config']['DOCGEN_OUT_DOC_DIR'])).substitute(var_replcs)
+    var_replcs = {}
+    BASEDIR = read_cfg(cfg, var_replcs, 'BASEDIR')
+    GIT_CLONEDIR = read_cfg(cfg, var_replcs, 'GIT_CLONEDIR')
+    OUT_WWWROOT = read_cfg(cfg, var_replcs, 'OUT_WWWROOT')
+    DOCGEN_OUT_DOC_DIR = read_cfg(cfg, var_replcs, 'DOCGEN_OUT_DOC_DIR')
 
     dbgPrint('BASEDIR: ' + str(BASEDIR))
     dbgPrint('GIT_CLONEDIR: ' + str(GIT_CLONEDIR))
@@ -70,9 +77,9 @@ def main():
     # Lock file preparation:
     global LOCKFILE
     global DO_REMOVE_LOCK
-    LOCKFILE=OUT_WWWROOT + '/.git2docs.lock'
-    DO_REMOVE_LOCK=True
-    open(LOCKFILE,'a')
+    LOCKFILE = OUT_WWWROOT + '/.git2docs.lock'
+    DO_REMOVE_LOCK = True
+    open(LOCKFILE, 'a')
 
     # Get remote branches:
     GIT_URI = cfg['config']['GIT_URI']
@@ -88,8 +95,9 @@ def do_cleanup():
     except:
         print('Exception (do_cleanup): '+str(sys.exc_info()[0]))
 
-import atexit
+
 atexit.register(do_cleanup)
+
 
 if __name__ == '__main__':
     try:
