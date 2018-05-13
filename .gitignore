@@ -1,4 +1,5 @@
 config.sh
+git2docs.cfg
 *.html
 *.css
 *.js

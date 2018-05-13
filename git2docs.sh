@@ -161,7 +161,7 @@ function mainGit2Docs
 		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
 
 		if [ "$IS_BRANCH" -eq "1" ]; then
-			dbgEcho "Git item: '$GIT_BRANCH' is a Branch." 
+			dbgEcho "Git item: '$GIT_BRANCH' is a Branch."
 			git pull  >> $DOCGEN_LOG_FILE 2>&1
 		else
 			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
