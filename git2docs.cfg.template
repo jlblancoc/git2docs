@@ -1,7 +1,6 @@
-#!/bin/bash 
-
-# **IMPORTANT**: Edit this file with the parameters of your setup, 
-# and RENAME it to `config.sh`
+[config]
+# **IMPORTANT**: Edit this file with the parameters of your setup,
+# and RENAME it to `git2docs.cfg`
 
 # Configuration file for git2docs
 
@@ -20,7 +19,7 @@ DOCGEN_OUT_DOC_DIR=$GIT_CLONEDIR/html/
 # Timeout for the document processing command (in seconds)
 DOCGEN_TIMEOUT=36000
 
-# If not empty, will include the contents of these files 
+# If not empty, will include the contents of these files
 # right before and after the table with the list of docs:
 # (Relative paths to this file)
 HTML_PAGE_HEADER=
@@ -30,6 +29,3 @@ HTML_PAGE_FOOTER=
 # to the <head></head> section:
 # (Relative path to this file)
 HTML_EXTRA_HEAD=
-
-
-

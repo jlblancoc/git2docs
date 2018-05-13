@@ -45,7 +45,7 @@ function cleanup
 trap cleanup EXIT
 
 function remove_all_non_origin_branches
-{	
+{
 	cd $GIT_CLONEDIR
 	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
 	git merge --abort > /dev/null 2>&1  || true  # To clean up dirty repos
@@ -53,10 +53,10 @@ function remove_all_non_origin_branches
 	git checkout .   > /dev/null
 	git checkout $DEFAULT_BRANCH   > /dev/null 2>&1
 	git fetch -p   > /dev/null
-	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do 
+	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do
 		set -x
 		git branch -D $branch   > /dev/null
-		rm -fr $OUT_WWWROOT/$branch* || true 
+		rm -fr $OUT_WWWROOT/$branch* || true
 		set +x
 	done
 }
@@ -81,7 +81,7 @@ function getRemoteGitBranches
 
 function mainGit2Docs
 {
-	dbgEcho "Clearing non-remote branches:"	
+	dbgEcho "Clearing non-remote branches:"
 	remove_all_non_origin_branches
 
 	dbgEcho "Getting list of git items:"
@@ -181,9 +181,9 @@ function processOneGitItem
 		# only if we are in a branch (as opposed to a tag), do a pull:
 		IS_BRANCH=0
 		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
-	
+
 		if [ "$IS_BRANCH" -eq "1" ]; then
-			dbgEcho "Git item: '$GIT_BRANCH' is a branch." 
+			dbgEcho "Git item: '$GIT_BRANCH' is a branch."
 			git pull --force  >> $DOCGEN_LOG_FILE 2>&1
 		else
 			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
