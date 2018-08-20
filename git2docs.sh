@@ -61,8 +61,21 @@ function getRemoteGitBranches
 	echo "$RET"
 }
 
+function removeRemovedRemote()
+{
+	cd $GIT_CLONEDIR
+	LST_DELETED=$(git branch -r | awk '{print $1}' | egrep -v -f /dev/fd/0 <(git branch -vv | grep origin) | awk '{print $1}')
+
+	for br in "${LST_DELETED[@]}"; do
+	echo $br;
+	done
+}
+
+
 function mainGit2Docs
 {
+	removeRemovedRemote
+
 	LIST_GIT_ITEMS=$(getRemoteGitBranches $GIT_URI)
 
 	dbgEcho "All git items:"
@@ -161,7 +174,7 @@ function mainGit2Docs
 		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
 
 		if [ "$IS_BRANCH" -eq "1" ]; then
-			dbgEcho "Git item: '$GIT_BRANCH' is a Branch." 
+			dbgEcho "Git item: '$GIT_BRANCH' is a Branch."
 			git pull --force  >> $DOCGEN_LOG_FILE 2>&1
 		else
 			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
