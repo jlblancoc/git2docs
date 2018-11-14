@@ -50,7 +50,7 @@ function remove_all_non_origin_branches
 	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
 	git clean -fd  > /dev/null
 	git checkout .   > /dev/null
-	git checkout $DEFAULT_BRANCH   > /dev/null
+	git checkout $DEFAULT_BRANCH   > /dev/null 2>&1
 	git fetch -p   > /dev/null
 	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do 
 		git branch -D $branch;   > /dev/null
