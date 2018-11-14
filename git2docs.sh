@@ -44,6 +44,18 @@ function cleanup
 }
 trap cleanup EXIT
 
+function remove_all_non_origin_branches
+{	
+	cd $GIT_CLONEDIR
+	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
+	git checkout $DEFAULT_BRANCH
+	git fetch -p
+	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do 
+		git branch -D $branch; 
+	done
+}
+
+
 function dbgEcho()
 {
 	if [ "$VERBOSE" == "1" ]; then
@@ -63,6 +75,9 @@ function getRemoteGitBranches
 
 function mainGit2Docs
 {
+	dbgEcho "Clearing non-remote branches:"	
+	remove_all_non_origin_branches
+
 	LIST_GIT_ITEMS=$(getRemoteGitBranches $GIT_URI)
 
 	dbgEcho "All git items:"
