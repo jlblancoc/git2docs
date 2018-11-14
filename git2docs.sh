@@ -152,9 +152,9 @@ function mainGit2Docs
 
 			# Update and get the req branch:
 			git clean -fd >/dev/null
+			git pull --all --force > /dev/null
 			git checkout .  >/dev/null
 
-			git fetch --all
 			git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1
 		# only if we are in a branch (as opposed to a tag), do a pull:
 		IS_BRANCH=0
