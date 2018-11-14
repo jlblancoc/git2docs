@@ -48,12 +48,12 @@ function remove_all_non_origin_branches
 {	
 	cd $GIT_CLONEDIR
 	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
-	git clean -fd
-	git checkout .
-	git checkout $DEFAULT_BRANCH
-	git fetch -p
+	git clean -fd  > /dev/null
+	git checkout .   > /dev/null
+	git checkout $DEFAULT_BRANCH   > /dev/null
+	git fetch -p   > /dev/null
 	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do 
-		git branch -D $branch; 
+		git branch -D $branch;   > /dev/null
 	done
 }
 
