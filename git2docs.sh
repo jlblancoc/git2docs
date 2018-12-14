@@ -56,7 +56,7 @@ function remove_all_non_origin_branches
 	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do 
 		set -x
 		git branch -D $branch   > /dev/null
-		rm -fr $OUT_WWWROOT/$branch || true 
+		rm -fr $OUT_WWWROOT/$branch* || true 
 		set +x
 	done
 }
