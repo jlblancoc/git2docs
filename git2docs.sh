@@ -48,13 +48,16 @@ function remove_all_non_origin_branches
 {	
 	cd $GIT_CLONEDIR
 	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
-	git merge --abort > /dev/null 2>&1  # To clean up dirty repos
+	git merge --abort > /dev/null 2>&1  || true  # To clean up dirty repos
 	git clean -fd  > /dev/null
 	git checkout .   > /dev/null
 	git checkout $DEFAULT_BRANCH   > /dev/null 2>&1
 	git fetch -p   > /dev/null
 	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do 
-		git branch -D $branch;   > /dev/null
+		set -x
+		git branch -D $branch   > /dev/null
+		rm -fr $OUT_WWWROOT/$branch || true 
+		set +x
 	done
 }
 
@@ -81,6 +84,7 @@ function mainGit2Docs
 	dbgEcho "Clearing non-remote branches:"	
 	remove_all_non_origin_branches
 
+	dbgEcho "Getting list of git items:"
 	LIST_GIT_ITEMS=$(getRemoteGitBranches $GIT_URI)
 
 	dbgEcho "All git items:"
