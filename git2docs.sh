@@ -143,10 +143,11 @@ function mainGit2Docs
 function processOneGitItem
 {
 	GIT_BRANCH=$2
+	GIT_BRANCH_CLEAN=$(echo $GIT_BRANCH | sed -e 's/\//_/g')
 	OUT_WWWDIR=$OUT_WWWROOT/$GIT_BRANCH
 
-	SHA_CACHE_FILE=$(echo $OUT_WWWROOT/$GIT_BRANCH-last-git-update.sha | sed -e 's/\//_/g')
-	DOCGEN_LOG_FILE=$(echo $OUT_WWWROOT/$GIT_BRANCH.log | sed -e 's/\//_/g')
+	SHA_CACHE_FILE=$OUT_WWWROOT/$GIT_BRANCH_CLEAN-last-git-update.sha
+	DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH_CLEAN.log
 	if [ ! -f $SHA_CACHE_FILE ]; then
 		echo " " > $SHA_CACHE_FILE
 	fi
@@ -160,7 +161,7 @@ function processOneGitItem
 		if [ ! $DEBUG_ENABLE_ECHO -eq 0 ];then
 			set -x
 		fi
-		echo "  => Change detected in '$GIT_BRANCH'. SHA: $LASTSHA...$CURSHA. Processing it."
+		echo "  => Change detected in '$GIT_BRANCH'. SHA: '$LASTSHA'->'$CURSHA'. Processing it."
 		echo "" > $DOCGEN_LOG_FILE # Reset log file
 
 		# Clone if it does not exist:
@@ -182,13 +183,14 @@ function processOneGitItem
 		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
 	
 		if [ "$IS_BRANCH" -eq "1" ]; then
-			dbgEcho "Git item: '$GIT_BRANCH' is a Branch." 
+			dbgEcho "Git item: '$GIT_BRANCH' is a branch." 
 			git pull --force  >> $DOCGEN_LOG_FILE 2>&1
 		else
 			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
 		fi
 
                 # Save new commit sha:
+		echo "   Saving new SHA to cache file: '$SHA_CACHE_FILE'"
 		echo $CURSHA > $SHA_CACHE_FILE
 
 		# build docs:
