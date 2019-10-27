@@ -174,9 +174,9 @@ function processOneGitItem
 
 		# Update and get the req branch:
 		git clean -fd >/dev/null
-		git pull --all --force > /dev/null
+		git pull --all --force > /dev/null 2>&1 || true
 		git checkout .  >/dev/null
-		git branch -D $GIT_BRANCH || true  # to prevent errors after "force-push"es
+		git branch -D $GIT_BRANCH > /dev/null 2>&1 || true  # to prevent errors after "force-push"es
 		git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1
 		# only if we are in a branch (as opposed to a tag), do a pull:
 		IS_BRANCH=0
@@ -208,7 +208,7 @@ function processOneGitItem
 		       	echo "Builds ok" > $DOCGEN_LOG_FILE.state
 			# Copy to target WWW dir:
 			mkdir -p $OUT_WWWDIR  >/dev/null 2>&1
-			rsync -a $DOCGEN_OUT_DOC_DIR  $OUT_WWWDIR/  >/dev/null
+			rsync -a $DOCGEN_OUT_DOC_DIR  $OUT_WWWDIR/ >/dev/null || echo "==WARNING== Ignoring error in rsync!"
 
 			if stat --printf='' $GIT_CLONEDIR/doc/*.tag 2>/dev/null
 			then
