@@ -74,7 +74,7 @@ function dbgEcho()
 function getRemoteGitBranches
 {
 	GIT_LS_REM=$(git ls-remote $1 | grep -e "tags" -e "heads")
-	RET=$(echo "$GIT_LS_REM" | grep -v -e "{}" | awk -F '[/ \t]' '{print $1,$NF}')
+	RET=$(echo "$GIT_LS_REM" | grep -v -e "{}" | sed -e 's/\([0-9a-f]*\)\t\(refs\/\)\(heads\|tags\)\/\(.*\)/\1 \4/')
 
 	echo "$RET"
 }
@@ -98,7 +98,7 @@ function mainGit2Docs
 		LIST_GIT_ITEMS=()
 		for git_item_line in "${git_lines[@]}";
 		do
-			dbgEcho " * Processing..." # $git_item_line"
+			dbgEcho " * Processing... $git_item_line"
 			num_line_items=$( wc -w <<< $git_item_line )
 			if [ ! "$num_line_items" == "2" ]; then
 				continue;
@@ -145,8 +145,8 @@ function processOneGitItem
 	GIT_BRANCH=$2
 	OUT_WWWDIR=$OUT_WWWROOT/$GIT_BRANCH
 
-	SHA_CACHE_FILE=$OUT_WWWROOT/$GIT_BRANCH-last-git-update.sha
-	DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH.log
+	SHA_CACHE_FILE=$(echo $OUT_WWWROOT/$GIT_BRANCH-last-git-update.sha | sed -e 's/\//_/g')
+	DOCGEN_LOG_FILE=$(echo $OUT_WWWROOT/$GIT_BRANCH.log | sed -e 's/\//_/g')
 	if [ ! -f $SHA_CACHE_FILE ]; then
 		echo " " > $SHA_CACHE_FILE
 	fi
@@ -194,8 +194,12 @@ function processOneGitItem
 		# build docs:
 		echo "Fails" > $DOCGEN_LOG_FILE.state
 		set +e
-		eval timeout $DOCGEN_TIMEOUT /usr/bin/time -f "%E" -o $DOCGEN_LOG_FILE.time $DOCGEN_CMD >> $DOCGEN_LOG_FILE 2>&1
-			DOC_RETCODE=$?
+		if [ "$GIT2DOCS_DRY_RUN" != "1" ]; then
+			eval timeout $DOCGEN_TIMEOUT /usr/bin/time -f "%E" -o $DOCGEN_LOG_FILE.time $DOCGEN_CMD >> $DOCGEN_LOG_FILE 2>&1
+		else
+			echo "DRY RUN, DOING NOTHING..."
+		fi
+		DOC_RETCODE=$?
 		echo "DOCGEN return code: $DOC_RETCODE"
 		set -e
 		if [ "$DOC_RETCODE" -eq "0" ]; then
