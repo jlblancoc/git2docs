@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================================
 #  git2docs - Generating docs for each Git tag & branch, made easy
-#  Copyright (C) 2017 - Jose Luis Blanco Claraco
+#  Copyright (C) 2017-2020 - Jose Luis Blanco Claraco
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ function processOneGitItem
 {
 	GIT_BRANCH=$2
 	GIT_BRANCH_CLEAN=$(echo $GIT_BRANCH | sed -e 's/\//_/g')
-	OUT_WWWDIR=$OUT_WWWROOT/$GIT_BRANCH
+	OUT_WWWDIR=$OUT_WWWROOT/$GIT_BRANCH_CLEAN
 
 	SHA_CACHE_FILE=$OUT_WWWROOT/$GIT_BRANCH_CLEAN-last-git-update.sha
 	DOCGEN_LOG_FILE=$OUT_WWWROOT/$GIT_BRANCH_CLEAN.log
