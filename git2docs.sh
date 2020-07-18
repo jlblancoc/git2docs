@@ -208,7 +208,7 @@ function processOneGitItem
 		       	echo "Builds ok" > $DOCGEN_LOG_FILE.state
 			# Copy to target WWW dir:
 			mkdir -p $OUT_WWWDIR  >/dev/null 2>&1
-			rsync -a $DOCGEN_OUT_DOC_DIR  $OUT_WWWDIR/ >/dev/null || echo "==WARNING== Ignoring error in rsync!"
+			rsync -a --delete $DOCGEN_OUT_DOC_DIR  $OUT_WWWDIR/ >/dev/null || echo "==WARNING== Ignoring error in rsync!"
 
 			if stat --printf='' $GIT_CLONEDIR/doc/*.tag 2>/dev/null
 			then
