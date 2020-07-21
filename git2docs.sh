@@ -19,7 +19,7 @@
 # ============================================================================
 
 # Set to 1 to enable command echo
-DEBUG_ENABLE_ECHO=0
+DEBUG_ENABLE_ECHO=FOO=${VERBOSE:-0}
 
 set -e  # Exit on any error
 #set -x # for debugging only
