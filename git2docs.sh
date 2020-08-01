@@ -49,7 +49,7 @@ function remove_all_non_origin_branches
 	cd $GIT_CLONEDIR
 	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
 	git merge --abort > /dev/null 2>&1  || true  # To clean up dirty repos
-	git clean -fd  > /dev/null
+	git clean -xfd  > /dev/null
 	git checkout .   > /dev/null
 	git checkout $DEFAULT_BRANCH   > /dev/null 2>&1
 	git fetch -p   > /dev/null
@@ -173,7 +173,7 @@ function processOneGitItem
 		cd $GIT_CLONEDIR
 
 		# Update and get the req branch:
-		git clean -fd >/dev/null
+		git clean -xfd >/dev/null
 		git pull --all --force > /dev/null 2>&1 || true
 		git checkout .  >/dev/null
 		git branch -D $GIT_BRANCH > /dev/null 2>&1 || true  # to prevent errors after "force-push"es
@@ -223,7 +223,7 @@ function processOneGitItem
 		sed -i -e "s=$GIT_CLONEDIR=«SRC»=g" $DOCGEN_LOG_FILE
                 sed -i -e "s=$OUT_WWWROOT=«OUT»=g" $DOCGEN_LOG_FILE
 		# Clean up
-		git clean -fd  >/dev/null
+		git clean -xfd  >/dev/null
 	else
 		dbgEcho "  => No changes detected."
 fi
