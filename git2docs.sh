@@ -197,6 +197,7 @@ function processOneGitItem
 		echo "Fails" > $DOCGEN_LOG_FILE.state
 		set +e
 		if [ "$GIT2DOCS_DRY_RUN" != "1" ]; then
+			printf "===== GIT2DOCS: Starting build job at: $(date) ======\n\n" >> $DOCGEN_LOG_FILE
 			eval timeout $DOCGEN_TIMEOUT /usr/bin/time -f "%E" -o $DOCGEN_LOG_FILE.time $DOCGEN_CMD >> $DOCGEN_LOG_FILE 2>&1
 		else
 			echo "DRY RUN, DOING NOTHING..."
