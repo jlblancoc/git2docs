@@ -134,8 +134,9 @@ function mainGit2Docs
 			ln -s $OUT_WWWROOT/$LAST_GIT_RELEASE $OUT_WWWROOT/stable
 		fi
 
-		# TO-DO: Remove non-existing branches
+	# TO-DO: Remove directories of non-existing branches.
 
+	dbgEcho "End of mainGit2Docs()"
 }
 
 
@@ -301,6 +302,7 @@ EOM
 	                echo "   <td colspan="5"><a href=\"$dir\">$dir</a> (&rightarrow; $(basename $(readlink -f $dir)))</td>" >> $HTMLOUT
 		else
 			if [ -f "$dir.log" ]; then
+				dbgEcho "Processing table, row: $dir"
 				GITSHA=$(cat $dir-last-git-update.sha)
 				GITDATE=$(cd $GIT_CLONEDIR && git log -1 --format=%ci $GITSHA)
 				UNIXDATE_GIT=$(cd $GIT_CLONEDIR && git log -1 --format=%ct $GITSHA)
