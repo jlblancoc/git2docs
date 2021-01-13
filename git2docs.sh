@@ -195,7 +195,7 @@ function processOneGitItem
 		echo $CURSHA > $SHA_CACHE_FILE
 
 		# build docs:
-		echo "Fails" > $DOCGEN_LOG_FILE.state
+		echo "<p style=\"color:red\"><strong>Fails</strong></p>" > $DOCGEN_LOG_FILE.state
 		set +e
 		if [ "$GIT2DOCS_DRY_RUN" != "1" ]; then
 			printf "===== GIT2DOCS: Starting build job at: $(date) ======\n\n" >> $DOCGEN_LOG_FILE
