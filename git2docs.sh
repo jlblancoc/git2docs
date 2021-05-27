@@ -297,10 +297,15 @@ EOM
 	cd $OUT_WWWROOT
 	for dir in $(ls */ -d1c | cut -f 1 -d "/")
 	do
+		# Ignored directory?
+		# We can ignore directories by leaving the .sha file but deleting the .log file.
+
+		# symlink?
 		if [ -L "$dir" ]; then
 	                echo "<tr>" >> $HTMLOUT
 	                echo "   <td colspan="5"><a href=\"$dir\">$dir</a> (&rightarrow; $(basename $(readlink -f $dir)))</td>" >> $HTMLOUT
 		else
+			# Regular directories:
 			if [ -f "$dir.log" ]; then
 				dbgEcho "Processing table, row: $dir"
 				GITSHA=$(cat $dir-last-git-update.sha)
