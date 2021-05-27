@@ -304,7 +304,7 @@ EOM
 			if [ -f "$dir.log" ]; then
 				dbgEcho "Processing table, row: $dir"
 				GITSHA=$(cat $dir-last-git-update.sha)
-				GITDATE=$(cd $GIT_CLONEDIR && git log -1 --format=%ci $GITSHA)
+				GITDATE="$(cd $GIT_CLONEDIR && git log -1 --format=%cd --date=format:%Y-%m-%dH%H:%M:%S $GITSHA) ($(cd $GIT_CLONEDIR && git log -1 --format=%cd --date=relative $GITSHA))"
 				UNIXDATE_GIT=$(cd $GIT_CLONEDIR && git log -1 --format=%ct $GITSHA)
 				GIT_AGE=$(($UNIXDATE_NOW - $UNIXDATE_GIT))
 
