@@ -50,8 +50,8 @@ function remove_all_non_origin_branches
 	DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2)
 	git merge --abort > /dev/null 2>&1  || true  # To clean up dirty repos
 	git clean -xfd  > /dev/null
-	git checkout .   > /dev/null
-	git checkout $DEFAULT_BRANCH   > /dev/null 2>&1
+	git checkout . > /dev/null 2>&1
+	git checkout $DEFAULT_BRANCH > /dev/null 2>&1
 	git fetch -p   > /dev/null
 	for branch in `git branch -vv | grep ': gone]' | awk '{print $1}'`; do
 		set -x
