@@ -175,10 +175,18 @@ function processOneGitItem
 
 		# Update and get the req branch:
 		git clean -xfd >/dev/null
-		git pull --all --force > /dev/null 2>&1 || true
-		git checkout .  >/dev/null
+		git fetch --all --force --tags > /dev/null 2>&1 || true
+		git checkout .  >/dev/null 2>&1
 		git branch -D $GIT_BRANCH > /dev/null 2>&1 || true  # to prevent errors after "force-push"es
-		git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1
+		if ! git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1; then
+			echo "ERROR: git checkout '$GIT_BRANCH' failed. Re-cloning..." | tee -a $DOCGEN_LOG_FILE
+			cd /
+			rm -rf $GIT_CLONEDIR
+			mkdir -p $GIT_CLONEDIR
+			git clone $GIT_URI $GIT_CLONEDIR >> $DOCGEN_LOG_FILE 2>&1
+			cd $GIT_CLONEDIR
+			git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1
+		fi
 		# only if we are in a branch (as opposed to a tag), do a pull:
 		IS_BRANCH=0
 		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
