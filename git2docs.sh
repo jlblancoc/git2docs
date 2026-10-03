@@ -28,21 +28,12 @@ set -e  # Exit on any error
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # https://stackoverflow.com/a/246128/1631514
 source $MYDIR/config.sh
 
-if [ ! -f $OUT_WWWROOT ]; then
+if [ ! -d $OUT_WWWROOT ]; then
 	mkdir -p $OUT_WWWROOT
 fi
 
-# Lock file preparation:
+# Lock file, to prevent concurrent runs (released automatically on exit):
 LOCKFILE=$OUT_WWWROOT/.git2docs.lock
-DO_REMOVE_LOCK=1
-# Make sure we cleanup lockfile on exit:
-function cleanup
-{
-	if [ "$DO_REMOVE_LOCK" == "1" ]; then
-		rm $LOCKFILE
-	fi
-}
-trap cleanup EXIT
 
 function remove_all_non_origin_branches
 {
@@ -188,29 +179,19 @@ function processOneGitItem
 
 		cd $GIT_CLONEDIR
 
-		# Update and get the req branch:
+		# Update and check out the exact commit of this branch or tag. A
+		# detached checkout avoids stale local branches and force-push issues.
 		git clean -xfd >/dev/null
 		git fetch --all --force --tags > /dev/null 2>&1 || true
 		git checkout .  >/dev/null 2>&1
-		git branch -D $GIT_BRANCH > /dev/null 2>&1 || true  # to prevent errors after "force-push"es
-		if ! git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1; then
-			echo "ERROR: git checkout '$GIT_BRANCH' failed. Re-cloning..." | tee -a $DOCGEN_LOG_FILE
+		if ! git checkout --force --detach $CURSHA  >> $DOCGEN_LOG_FILE 2>&1; then
+			echo "ERROR: git checkout '$GIT_BRANCH' ($CURSHA) failed. Re-cloning..." | tee -a $DOCGEN_LOG_FILE
 			cd /
 			rm -rf $GIT_CLONEDIR
 			mkdir -p $GIT_CLONEDIR
 			git clone $GIT_URI $GIT_CLONEDIR >> $DOCGEN_LOG_FILE 2>&1
 			cd $GIT_CLONEDIR
-			git checkout $GIT_BRANCH  >> $DOCGEN_LOG_FILE 2>&1
-		fi
-		# only if we are in a branch (as opposed to a tag), do a pull:
-		IS_BRANCH=0
-		git describe --exact-match --tags HEAD 2>/dev/null || IS_BRANCH=1
-
-		if [ "$IS_BRANCH" -eq "1" ]; then
-			dbgEcho "Git item: '$GIT_BRANCH' is a branch."
-			git pull --force  >> $DOCGEN_LOG_FILE 2>&1
-		else
-			dbgEcho "Git item: '$GIT_BRANCH' is a tag."
+			git checkout --force --detach $CURSHA  >> $DOCGEN_LOG_FILE 2>&1
 		fi
 
                 # Save new commit sha:
@@ -500,21 +481,11 @@ EOM
 }
 
 # Check for another active session:
-if [ -f $LOCKFILE ]; then
-	# There is a lock file. Honor it and exit... unless it's really old,
-	# which might indicate a dangling script (?).
-	if [ "$(( $(date +"%s") - $(stat -c "%Y" $LOCKFILE) ))" -gt "3600" ]; then
-		# too old: reset lock file
-		rm $LOCKFILE
-		dbgEcho "Removing dangling lockfile."
-	else
-		DO_REMOVE_LOCK=0
-		dbgEcho "Exiting: there is another instance running? (lockfile exists)"
-		exit;
-	fi
+exec 9>$LOCKFILE
+if ! flock -n 9; then
+	dbgEcho "Exiting: there is another instance running (lockfile is locked)"
+	exit
 fi
-# Create lock file:
-touch $LOCKFILE
 
 # Ok, run git2docs:
 mainGit2Docs
